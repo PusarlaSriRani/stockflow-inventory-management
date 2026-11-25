@@ -10,11 +10,12 @@ from app.core.security import decode_access_token
 from app.models.user import User
 
 
-bearer_scheme = HTTPBearer()
+# Bearer authentication
+bearer_scheme = HTTPBearer(auto_error=False)
 
 
 def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
     db: Session = Depends(get_db)
 ):
     credentials_exception = HTTPException(
@@ -23,10 +24,17 @@ def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
 
+    if credentials is None:
+        raise credentials_exception
+
     try:
         token = credentials.credentials
 
         payload = decode_access_token(token)
+
+        if not isinstance(payload, dict):
+            raise credentials_exception
+
         user_id = payload.get("sub")
 
         if not isinstance(user_id, str) or not user_id.isdigit():
