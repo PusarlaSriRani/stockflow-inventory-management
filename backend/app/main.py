@@ -25,16 +25,19 @@ app.include_router(auth_router)
 app.include_router(products_router)
 
 
-# Configure frontend connection
+from fastapi.middleware.cors import CORSMiddleware
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
         "http://localhost:5174",
     ],
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+
 )
 
 
